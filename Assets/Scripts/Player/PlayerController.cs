@@ -12,8 +12,8 @@ public enum JumpMode
 
 public class PlayerController : MonoBehaviour
 {
-
     public MoveModule moveModule;
+    public JumpMode currentJumpMode;
 
     private Rigidbody rb;
 
@@ -36,19 +36,60 @@ public class PlayerController : MonoBehaviour
         public float currentMultiplier { get; set; }
     }
 
-    void Jump()
+    public void Jump()
     {
-        rb.AddForce(moveModule.mainForce /** moveModule.currentMultiplier*/);
+        rb.AddForce(moveModule.mainForce * moveModule.currentMultiplier);
+        Debug.Log(currentJumpMode);
     }
 
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        currentJumpMode = JumpMode.Nice;
     }
 
     private void FixedUpdate()
     {
-        Jump();
+
+        Multiplier();
+        Vector3 movePos = new Vector3
+            ((transform.position + MovePosition()).x,
+            (transform.position + MovePosition()).y,
+            (transform.position + MovePosition()).z);
+        rb.MovePosition(movePos);
+    }
+
+    private void Multiplier()
+    {
+        if (currentJumpMode == JumpMode.Nice)
+        {
+            moveModule.currentMultiplier = 1;
+        }
+        else if (currentJumpMode == JumpMode.Cool)
+        {
+            moveModule.currentMultiplier = 2;
+        }
+        else
+        {
+            moveModule.currentMultiplier = 3;
+        }
+    }
+    private Vector3 MovePosition()
+    {
+        Vector3 moveVector = transform.forward * moveModule.forwardSpeed * Time.deltaTime;
+        return moveVector;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.name == "CoolLine")
+        {
+            currentJumpMode = JumpMode.Cool;
+        }
+        if (other.gameObject.name == "PerfectLine")
+        {
+            currentJumpMode = JumpMode.Perfect;
+        }
     }
 }
