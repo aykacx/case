@@ -13,7 +13,7 @@ public class CameraFollow : MonoBehaviour
     {
         var target = _target.transform.position + offset;
         var targetPos = new Vector3(transform.position.x, target.y, target.z);
-        var smoothPos = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * camSpeed);
+        var smoothPos = Vector3.MoveTowards(transform.position, targetPos, Time.deltaTime * camSpeed);
         transform.position = smoothPos;
     }
 }
