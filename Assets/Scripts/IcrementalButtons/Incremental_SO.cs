@@ -8,7 +8,7 @@ public class Incremental_SO : ScriptableObject
 {
     public ItemData jetpack;
     public ItemData jumpForce;
-    public ItemData gold;
+    public ItemData coinAmount;
     public Color color;
 }
 [Serializable]
@@ -18,5 +18,5 @@ public struct ItemData
     public int cost;
     public float jetpackFuel;
     public Vector3 mainForce;
-    public int gold;
+    public float coinAmount;
 }

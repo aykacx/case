@@ -29,7 +29,7 @@ public class IncrementalButtonCont : MonoBehaviour
 
     private void UpgradeMoney()
     {
-        incremental_so.gold.gold = (int)(incremental_so.gold.gold * 1.1f);
+        incremental_so.coinAmount.coinAmount = incremental_so.coinAmount.coinAmount + 0.5f;
         Debug.Log("gold income upgraded");
     }
 

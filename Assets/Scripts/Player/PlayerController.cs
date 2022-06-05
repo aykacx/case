@@ -14,7 +14,8 @@ public enum JumpMode
 public class PlayerController : MonoBehaviour
 {
     public MoveModule moveModule;
-
+    public CoinModule coinModule;
+    public GameOverModule gameOver;
 
     private bool _speedCutted = false;
 
@@ -65,6 +66,7 @@ public class PlayerController : MonoBehaviour
         {
             if (CurrentJumpCount > 0 && CurrentJumpMode != JumpMode.CantJump && rigidbody.transform.position.y < 0.1)
             {
+                rigidbody.velocity = Vector3.zero;
                 rigidbody.AddForce(CurrentForce * CurrentMultiplier, ForceMode.Impulse);
                 CurrentJumpCount--;
                 CanMove = false;
@@ -86,9 +88,10 @@ public class PlayerController : MonoBehaviour
         }
         public void JetPack()
         {
-            if (CurrentJetpackFuel > 0 && CurrentJumpCount is 0)
+            if (CurrentJetpackFuel > 0 && CurrentJumpCount <= 0)
             {
                 rigidbody.AddForce(CurrentJetpackForce * CurrentMultiplier, ForceMode.Impulse);
+
                 CurrentJetpackFuel = Mathf.Lerp(CurrentJetpackFuel, 0, Time.deltaTime * jetpackFuelCutSpeed);
                 if (CurrentJetpackFuel < 1)
                 {
@@ -97,7 +100,43 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+    [Serializable]
+    public struct CoinModule
+    {
+        public Incremental_SO incrementalData;
+        public CoinData_SO coinData;
 
+        private float _currrentPos;
+        public float coinPerDistance;
+
+        public void AddCoin(float lastPos)
+        {
+            if (lastPos - _currrentPos >= coinPerDistance)
+            {
+                _currrentPos = lastPos;
+                coinData.totalCoin += (int)incrementalData.coinAmount.coinAmount;
+            }
+        }
+    }
+    [Serializable]
+    public struct GameOverModule
+    {
+        public MoveModule moveModule;
+
+        public float overTime;
+
+        public void GameOver()
+        {
+            if (moveModule.CurrentJetpackFuel == 0)
+            {
+                overTime = Mathf.Lerp(overTime, 0, Time.deltaTime * overTime);
+                if (overTime <= 0.1)
+                {
+                    Debug.Log("game over");
+                }
+            }
+        }
+    }
     void Start()
     {
         moveModule.Init();
@@ -109,17 +148,20 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (Input.GetMouseButton(0))
+            moveModule.JetPack();
+
         if (moveModule.CanMove)
             moveModule.Move(transform);
     }
     private void Update()
     {
-
-        if (Input.GetMouseButton(0))
-            moveModule.JetPack();
-
         if (_speedCutted)
             moveModule.CurrentForwardSpeed = Mathf.Lerp(moveModule.CurrentForwardSpeed, 0, Time.deltaTime * moveModule.cutSpeed);
+
+        coinModule.AddCoin(transform.position.z);
+
+        gameOver.GameOver();
     }
     private void OnTriggerEnter(Collider other)
     {

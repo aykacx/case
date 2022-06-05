@@ -15,19 +15,19 @@ MonoBehaviour:
   jetpack:
     level: 1
     cost: 0
-    jetpackFuel: 8051.537
-    mainForce: {x: 0, y: 0, z: 0}
-    gold: 0
+    jetpackFuel: 10
+    mainForce: {x: 0, y: 0.1, z: 0.1}
+    coinAmount: 0
   jumpForce:
     level: 0
     cost: 0
     jetpackFuel: 0
-    mainForce: {x: 0, y: 191.94351, z: 191.94351}
-    gold: 0
-  gold:
+    mainForce: {x: 0, y: 10, z: 10}
+    coinAmount: 0
+  coinAmount:
     level: 0
     cost: 0
     jetpackFuel: 0
     mainForce: {x: 0, y: 0, z: 0}
-    gold: 0
+    coinAmount: 1
   color: {r: 0.95869803, g: 1, b: 0, a: 0}
