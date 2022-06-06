@@ -12864,6 +12864,10 @@ PrefabInstance:
       value: 0.99
       objectReference: {fileID: 0}
     - target: {fileID: 4606734974111984533, guid: 20672292e08df5840b61003998c1f7c5, type: 3}
+      propertyPath: gameOver.overTime
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4606734974111984533, guid: 20672292e08df5840b61003998c1f7c5, type: 3}
       propertyPath: coinModule.coinData
       value: 
       objectReference: {fileID: 11400000, guid: 535251593d1b3a048a7fa14d7c79e3b1, type: 2}
