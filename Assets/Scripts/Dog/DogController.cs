@@ -4,25 +4,31 @@ using UnityEngine;
 
 public class DogController : MonoBehaviour
 {
-    [SerializeField] Rigidbody playerRigidbody;
-    [SerializeField] Transform playerTransform;
+    public float followSpeed;
 
-    [SerializeField] float forwardSpeed;
+    private Transform _playerPos;
+    public Vector3 offset;
+    private bool _canFollow;
 
-    private Rigidbody rb;
-    void Start()
+
+    private void Update()
     {
-        rb = GetComponent<Rigidbody>();
+        if (_canFollow)
+        {
+            transform.position = Vector3.Lerp(transform.position, _playerPos.position,followSpeed * Time.deltaTime);
+        }
     }
-
-    private void FixedUpdate()
+    public void Initialize(Transform position)
     {
-            Vector3 moveVector = transform.forward * forwardSpeed * Time.deltaTime;
-            Vector3 movePos = transform.position + moveVector;
-            rb.MovePosition(movePos);
+        _playerPos = position;
+        _canFollow = true;
+        transform.position = offset + _playerPos.position;
     }
-    void Update()
+    private void OnTriggerEnter(Collider other)
     {
-        
+        if (other.gameObject.tag == "Player")
+        {
+            _canFollow = false;
+        }
     }
 }

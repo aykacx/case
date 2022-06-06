@@ -18,5 +18,5 @@ public struct ItemData
     public int cost;
     public float jetpackFuel;
     public Vector3 mainForce;
-    public float coinAmount;
+    public float coinDistanceMultiplier;
 }

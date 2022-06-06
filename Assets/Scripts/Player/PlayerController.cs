@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum JumpMode
 {
@@ -13,11 +14,16 @@ public enum JumpMode
 
 public class PlayerController : MonoBehaviour
 {
+    public Rigidbody rb;
+    public GameObject endUI;
+    public GameObject inUI;
+
     public MoveModule moveModule;
     public CoinModule coinModule;
     public GameOverModule gameOver;
 
     private bool _speedCutted = false;
+    private bool _checkMove = false;
 
 
     [Serializable]
@@ -38,6 +44,7 @@ public class PlayerController : MonoBehaviour
         public float forwardSpeed;
         public float cutSpeed; // foward speedin kesilme süresi veya hýzý 
         public float jetpackFuelCutSpeed; // üsttekinin aynýsýnýn jetpack için olaný
+        public Vector3 jetpackMaxVelocity;
 
         public float jetpackFuel;
 
@@ -91,7 +98,12 @@ public class PlayerController : MonoBehaviour
             if (CurrentJetpackFuel > 0 && CurrentJumpCount <= 0)
             {
                 rigidbody.AddForce(CurrentJetpackForce * CurrentMultiplier, ForceMode.Impulse);
+                rigidbody.velocity = new Vector3(
+                    rigidbody.velocity.x,
+                    Mathf.Clamp(rigidbody.velocity.y,0,jetpackMaxVelocity.y),
+                    Mathf.Clamp(rigidbody.velocity.z,0,jetpackMaxVelocity.z)
 
+                    );
                 CurrentJetpackFuel = Mathf.Lerp(CurrentJetpackFuel, 0, Time.deltaTime * jetpackFuelCutSpeed);
                 if (CurrentJetpackFuel < 1)
                 {
@@ -114,32 +126,34 @@ public class PlayerController : MonoBehaviour
             if (lastPos - _currrentPos >= coinPerDistance)
             {
                 _currrentPos = lastPos;
-                coinData.totalCoin += (int)incrementalData.coinAmount.coinAmount;
+                coinData.totalCoin += (int)incrementalData.coinAmount.coinDistanceMultiplier;
             }
         }
     }
     [Serializable]
     public struct GameOverModule
     {
-        public MoveModule moveModule;
+        [SerializeField] Transform dogTransform;
 
-        public float overTime;
-
-        public void GameOver()
+        public bool CanCheckSeq { get; set; }
+        public DogController dogController;
+        public void Init()
         {
-            if (moveModule.CurrentJetpackFuel == 0)
+            CanCheckSeq = true;
+        }
+        public void CheckEndSequence(MoveModule moveModule)
+        {
+            if (moveModule.rigidbody.velocity.y == 0)
             {
-                overTime = Mathf.Lerp(overTime, 0, Time.deltaTime * overTime);
-                if (overTime <= 0.1)
-                {
-                    Debug.Log("game over");
-                }
+                dogController.Initialize(moveModule.rigidbody.transform);
+                CanCheckSeq = !CanCheckSeq;
             }
         }
     }
     void Start()
     {
         moveModule.Init();
+        gameOver.Init();
     }
     public void Jump()
     {
@@ -148,6 +162,10 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (!_checkMove)
+        {
+            return;
+        }
         if (Input.GetMouseButton(0))
             moveModule.JetPack();
 
@@ -160,8 +178,20 @@ public class PlayerController : MonoBehaviour
             moveModule.CurrentForwardSpeed = Mathf.Lerp(moveModule.CurrentForwardSpeed, 0, Time.deltaTime * moveModule.cutSpeed);
 
         coinModule.AddCoin(transform.position.z);
-
-        gameOver.GameOver();
+        if (moveModule.CurrentJetpackFuel <= 0 && gameOver.CanCheckSeq)
+        {
+            gameOver.CheckEndSequence(moveModule);
+            
+        }
+        
+    }
+    public void CheckMove()
+    {
+        _checkMove = true;
+    }
+    public void LoadScene()
+    {
+        SceneManager.LoadScene(0);
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -179,5 +209,17 @@ public class PlayerController : MonoBehaviour
         {
             _speedCutted = true;
         }
+
+        if (other.gameObject.tag == "Dog")
+        {
+            rb.AddForce(new Vector3(0, 0, 10), ForceMode.Impulse);
+            inUI.SetActive(false);
+            StartCoroutine(OpenEndUI());
+        }
+    }
+    IEnumerator OpenEndUI()
+    {
+        yield return new WaitForSeconds(4f);
+        endUI.SetActive(true);
     }
 }

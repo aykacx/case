@@ -6,37 +6,30 @@ using UnityEngine.UI;
 
 public class IncrementalButtonCont : MonoBehaviour
 {
-    public Button jumpIncremetalButton;
-    public Button jetpackIncrementalButton;
-    public Button moneyIncrementalButton;
+    public IncrementalButtonData jumpIncremetalButton;
+    public IncrementalButtonData jetpackIncrementalButton;
+    public IncrementalButtonData moneyIncrementalButton;
 
     public HatModule hatModule;
     public Incremental_SO incremental_so;
+    public CoinData_SO coinData;
 
-    private void Start()
-    {
-        jumpIncremetalButton.onClick.AddListener(UpgradeJump);
-        jetpackIncrementalButton.onClick.AddListener(UpgradeJetpack);
-        moneyIncrementalButton.onClick.AddListener(UpgradeMoney);
-        hatModule.Init();
-    }
+    public int costMutltiplier;
 
-    private void UpgradeJump()
+    [Serializable]
+    public struct IncrementalButtonData
     {
-        incremental_so.jumpForce.mainForce *= 1.1f;
-        Debug.Log("Jumpforce upgraded");
-    }
 
-    private void UpgradeMoney()
-    {
-        incremental_so.coinAmount.coinAmount = incremental_so.coinAmount.coinAmount + 0.5f;
-        Debug.Log("gold income upgraded");
-    }
+        public Button button;
+        public Text levelTxt;
+        public Text costTxt;
 
-    private void UpgradeJetpack()
-    {
-        incremental_so.jetpack.jetpackFuel *= 1.1f;
-        Debug.Log("jetpack fuel upgraded");
+        public void UpdateLevelData(int level, int cost)
+        {
+            levelTxt.text ="Level: " + level.ToString();
+            costTxt.text ="Price: " + cost.ToString();
+        }
+
     }
 
     [Serializable]
@@ -60,4 +53,69 @@ public class IncrementalButtonCont : MonoBehaviour
             incremental_SO.color = hatMaterial.color;
         }
     }
+
+    private void Start()
+    {
+        jumpIncremetalButton.button.onClick.AddListener(UpgradeJump);
+        jetpackIncrementalButton.button.onClick.AddListener(UpgradeJetpack);
+        moneyIncrementalButton.button.onClick.AddListener(UpgradeMoney);
+        hatModule.Init();
+
+        var cost = incremental_so.jumpForce.cost = costMutltiplier * incremental_so.jumpForce.level;
+        jumpIncremetalButton.UpdateLevelData(incremental_so.jumpForce.level, cost);
+
+        cost = incremental_so.coinAmount.cost = costMutltiplier * incremental_so.coinAmount.level;
+        moneyIncrementalButton.UpdateLevelData(incremental_so.coinAmount.level, cost);
+
+        cost = incremental_so.jetpack.cost = costMutltiplier * incremental_so.jetpack.level;
+        jetpackIncrementalButton.UpdateLevelData(incremental_so.jetpack.level, cost);
+    }
+    private void Update()
+    {
+        CheckCost(jumpIncremetalButton, incremental_so.jumpForce);
+        CheckCost(moneyIncrementalButton, incremental_so.coinAmount);
+        CheckCost(jetpackIncrementalButton, incremental_so.jetpack);
+    }
+    public void CheckCost(IncrementalButtonData incrementalButton,ItemData itemData)
+    {
+        if (coinData.totalCoin < itemData.cost)
+        {
+            incrementalButton.button.interactable = false;
+        }
+        else
+        {
+            incrementalButton.button.interactable = true;
+        }
+    }
+    private void UpgradeJump()
+    {
+        incremental_so.jumpForce.mainForce *= 1.1f;
+        incremental_so.jumpForce.level++;
+        var cost = incremental_so.jumpForce.cost = costMutltiplier * incremental_so.jumpForce.level;
+        jumpIncremetalButton.UpdateLevelData(incremental_so.jumpForce.level, cost);
+        coinData.totalCoin -= cost;
+        Debug.Log("jump ugrded");
+    }
+
+    private void UpgradeMoney()
+    {
+        incremental_so.coinAmount.coinDistanceMultiplier = incremental_so.coinAmount.coinDistanceMultiplier + 0.5f;
+        incremental_so.coinAmount.level++;
+        var cost = incremental_so.coinAmount.cost = costMutltiplier * incremental_so.coinAmount.level;
+        moneyIncrementalButton.UpdateLevelData(incremental_so.coinAmount.level, cost);
+        coinData.totalCoin -= cost;
+        Debug.Log("gold income upgraded");
+    }
+
+    private void UpgradeJetpack()
+    {
+        incremental_so.jetpack.jetpackFuel *= 1.1f;
+        incremental_so.jetpack.level++;
+        var cost = incremental_so.jetpack.cost = costMutltiplier * incremental_so.jetpack.level;
+        jetpackIncrementalButton.UpdateLevelData(incremental_so.jetpack.level, cost);
+        coinData.totalCoin -= cost;
+        Debug.Log("jetpack fuel upgraded");
+    }
+
+
 }
